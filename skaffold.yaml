@@ -1,0 +1,31 @@
+apiVersion: skaffold/v4beta6
+kind: Config
+
+metadata:
+  name: options-greeks-api
+
+build:
+  artifacts:
+    - image: options-greeks-api
+      context: .
+      docker:
+        dockerfile: Dockerfile        # auto-switches by language
+
+deploy:
+  helm:
+    releases:
+      - name: options-greeks-api
+        chartPath: chart
+        valuesFiles: [chart/values.yaml]
+
+profiles:
+  - name: dev
+    build:
+      local:
+        push: false          # keep images inside kind/Colima
+    deploy:
+      helm:
+        hooks:
+          after:
+            - host:
+                command: ["kubectl", "rollout", "status", "deployment/options-greeks-api"]
